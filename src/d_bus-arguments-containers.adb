@@ -184,8 +184,14 @@ package body D_Bus.Arguments.Containers is
 
       Argument_List_Type (Result) := Deserialize (D_Sub_Args'Access);
 
-      Result.Signature := To_Unbounded_String
-        (Value (dbus_message_h.dbus_message_iter_get_signature (D_Args)));
+      --  Set signature and skip leading 'a'
+      declare
+         Signature : constant String :=
+           dbus_message_h.dbus_message_iter_get_signature (D_Args);
+      begin
+         Result.Signature := To_Unbounded_String
+           (Signature (Signature'First + 1 .. Signature'Last));
+      end;
 
       return Result;
    end Deserialize;
