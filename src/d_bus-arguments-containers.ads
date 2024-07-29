@@ -26,6 +26,8 @@
 --  executable file might be covered by the GNU Public License.
 --
 
+with Ada.Strings.Unbounded;
+
 package D_Bus.Arguments.Containers is
 
    -----------
@@ -71,6 +73,12 @@ package D_Bus.Arguments.Containers is
       Right : Array_Type)
       return Argument_List_Type;
    --  Add array to argument list.
+
+   procedure Set_Signature
+     (List : in out Array_Type;
+      Signature : String);
+   --  Sets an empty array's signature. It is an error to call this
+   --  on a list with elements.
 
    ------------
    -- STRUCT --
@@ -199,7 +207,7 @@ private
 
    type Array_Type is new Argument_List_Type
      and Argument_Type with record
-      Code : Natural := 0;
+      Signature : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    type Struct_Type is new Argument_List_Type
