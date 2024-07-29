@@ -186,8 +186,8 @@ package body D_Bus.Arguments.Containers is
 
       --  Set signature and skip leading 'a'
       declare
-         Signature : constant String :=
-           dbus_message_h.dbus_message_iter_get_signature (D_Args);
+         Signature : constant String := Value
+           (dbus_message_h.dbus_message_iter_get_signature (D_Args));
       begin
          Result.Signature := To_Unbounded_String
            (Signature (Signature'First + 1 .. Signature'Last));
