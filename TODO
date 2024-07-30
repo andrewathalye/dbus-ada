@@ -1,7 +1,6 @@
 D_Bus/Ada TODOs
 ===============
 
-* Add support for empty containers
 * Simplify container To_String function.
 * Add Get (Index) to list.
 * Use Get () in dict entry getters, raise own exceptions.

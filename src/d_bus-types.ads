@@ -30,8 +30,6 @@ with Ada.Strings.Unbounded;
 
 package D_Bus.Types is
 
-   pragma Preelaborate;
-
    type Obj_Path is private;
    --  D-Bus object path.
 
@@ -42,12 +40,28 @@ package D_Bus.Types is
    function To_String (Path : Obj_Path) return String;
    --  Convert given object path to string.
 
-   function Is_Valid (Path : String) return Boolean;
+   function Is_Valid_Obj_Path (Path : String) return Boolean;
    --  Return True if path given as string is a valid D-Bus object path.
+
+   type Signature is private;
+   --  D-Bus signature
+
+   function "+" (Sig : String) return Signature;
+   --  Convert `Sig` to `Signature`.
+
+   function To_String (Sig : Signature) return String;
+   --  Convert `Sig` to `String`.
+
+   function Is_Valid_Signature (Sig : String) return Boolean;
+   --  Return True if `Sig` would be a valid `Signature`
 
 private
 
    type Obj_Path is record
+      Value : Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+   type Signature is record
       Value : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 

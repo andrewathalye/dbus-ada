@@ -2,6 +2,7 @@
 --  D_Bus/Ada - An Ada binding to D-Bus
 --
 --  Copyright (C) 2012  Reto Buerki <reet@codelabs.ch>
+--  Copyright (C) 2024  Andrew Athalye
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License
@@ -28,6 +29,12 @@
 
 with GNAT.Regpat;
 
+with Interfaces.C.Strings;
+
+with dbus_signature_h;
+with dbus_types_h;
+with dbus_errors_h;
+
 package body D_Bus.Types is
 
    -------------------------------------------------------------------------
@@ -35,7 +42,7 @@ package body D_Bus.Types is
    function "+" (Path : String) return Obj_Path
    is
    begin
-      if not Is_Valid (Path => Path) then
+      if not Is_Valid_Obj_Path (Path => Path) then
          raise D_Bus_Error with "Invalid D-Bus object path: '" & Path & "'";
       end if;
 
@@ -46,7 +53,21 @@ package body D_Bus.Types is
 
    -------------------------------------------------------------------------
 
-   function Is_Valid (Path : String) return Boolean
+   function "+" (Sig : String) return Signature
+   is
+   begin
+      if not Is_Valid_Signature (Sig) then
+         raise D_Bus_Error with "Invalid D-Bus signature: '" & Sig & "'";
+      end if;
+
+      return S : Signature do
+         S.Value := Ada.Strings.Unbounded.To_Unbounded_String (Sig);
+      end return;
+   end "+";
+
+   -------------------------------------------------------------------------
+
+   function Is_Valid_Obj_Path (Path : String) return Boolean
    is
       use type GNAT.Regpat.Match_Location;
 
@@ -58,7 +79,25 @@ package body D_Bus.Types is
                          Data    => Path,
                          Matches => Matches);
       return Matches (0) /= GNAT.Regpat.No_Match;
-   end Is_Valid;
+   end Is_Valid_Obj_Path;
+
+   -------------------------------------------------------------------------
+
+   function Is_Valid_Signature (Sig : String) return Boolean
+   is
+      use type dbus_types_h.dbus_bool_t;
+
+      Sig_C : aliased Interfaces.C.Strings.chars_ptr :=
+        Interfaces.C.Strings.New_String (Sig);
+
+      D_Err : aliased dbus_errors_h.DBusError;
+      D_Res : dbus_types_h.dbus_bool_t;
+   begin
+      D_Res := dbus_signature_h.dbus_signature_validate (Sig_C, D_Err'Access);
+      Interfaces.C.Strings.Free (Sig_C);
+
+      return D_Res = 1;
+   end Is_Valid_Signature;
 
    -------------------------------------------------------------------------
 
@@ -68,4 +107,13 @@ package body D_Bus.Types is
       return Ada.Strings.Unbounded.To_String (Source => Path.Value);
    end To_String;
 
+   -------------------------------------------------------------------------
+
+   function To_String (Sig : Signature) return String
+   is
+   begin
+      return Ada.Strings.Unbounded.To_String (Sig.Value);
+   end To_String;
+
+   -------------------------------------------------------------------------
 end D_Bus.Types;

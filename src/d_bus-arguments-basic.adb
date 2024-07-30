@@ -2,6 +2,7 @@
 --  D_Bus/Ada - An Ada binding to D-Bus
 --
 --  Copyright (C) 2011, 2012  Reto Buerki <reet@codelabs.ch>
+--  Copyright (C) 2024  Andrew Athalye
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License
@@ -219,6 +220,13 @@ package body D_Bus.Arguments.Basic is
 
    -------------------------------------------------------------------------
 
+   function "+" (Left : Types.Signature) return Signature_Type is
+   begin
+      return Signature_Type'(Value => Left);
+   end "+";
+
+   -------------------------------------------------------------------------
+
    function "+" (Left : Boolean) return Boolean_Type
    is
    begin
@@ -279,6 +287,22 @@ package body D_Bus.Arguments.Basic is
    is
    begin
       return Byte_Type'(Value => Left);
+   end "+";
+
+   -------------------------------------------------------------------------
+
+   function "+" (Left : Double) return Double_Type
+   is
+   begin
+      return Double_Type'(Value => Left);
+   end "+";
+
+   -------------------------------------------------------------------------
+
+   function "+" (Left : File_Descriptor) return File_Descriptor_Type
+   is
+   begin
+      return File_Descriptor_Type'(Value => Left);
    end "+";
 
    -------------------------------------------------------------------------
@@ -432,6 +456,24 @@ package body D_Bus.Arguments.Basic is
 
    function Deserialize
      (D_Arg : not null access dbus_message_h.DBusMessageIter)
+      return Signature_Type
+   is
+      use Types;
+
+      D_String : Interfaces.C.Strings.chars_ptr;
+   begin
+      dbus_message_h.dbus_message_iter_get_basic
+        (iter => D_Arg, value => D_String'Address);
+
+      return Signature : Signature_Type do
+         Signature.Value := +Interfaces.C.Strings.Value (D_String);
+      end return;
+   end Deserialize;
+
+   -------------------------------------------------------------------------
+
+   function Deserialize
+     (D_Arg : not null access dbus_message_h.DBusMessageIter)
       return Boolean_Type
    is
       use type dbus_types_h.dbus_bool_t;
@@ -558,6 +600,34 @@ package body D_Bus.Arguments.Basic is
 
    -------------------------------------------------------------------------
 
+   function Deserialize
+     (D_Arg : not null access dbus_message_h.DBusMessageIter)
+      return Double_Type
+   is
+      Val : aliased Double;
+   begin
+      dbus_message_h.dbus_message_iter_get_basic
+        (iter => D_Arg, value => Val'Address);
+
+      return Double_Type'(Value => Val);
+   end Deserialize;
+
+   -------------------------------------------------------------------------
+
+   function Deserialize
+     (D_Arg : not null access dbus_message_h.DBusMessageIter)
+      return File_Descriptor_Type
+   is
+      Val : aliased File_Descriptor;
+   begin
+      dbus_message_h.dbus_message_iter_get_basic
+        (iter => D_Arg, value => Val'Address);
+
+      return File_Descriptor_Type'(Value => Val);
+   end Deserialize;
+
+   -------------------------------------------------------------------------
+
    procedure Deserialize
      (D_Arg   : not null access dbus_message_h.DBusMessageIter;
       Address : System.Address)
@@ -623,6 +693,21 @@ package body D_Bus.Arguments.Basic is
                  D_Arg    => D_Arg);
 
       C.Strings.Free (Item => D_Value);
+   end Serialize;
+
+   -------------------------------------------------------------------------
+
+   procedure Serialize
+     (Arg   : Signature_Type;
+      D_Arg : not null access dbus_message_h.DBusMessageIter)
+   is
+      D_String : C.Strings.chars_ptr := C.Strings.New_String
+        (Str => Arg.To_String);
+   begin
+      Serialize (Code     => Arg.Get_Code,
+                 Arg_Name => "signature",
+                 Address  => D_String'Address,
+                 D_Arg    => D_Arg);
    end Serialize;
 
    -------------------------------------------------------------------------
@@ -732,7 +817,41 @@ package body D_Bus.Arguments.Basic is
 
    -------------------------------------------------------------------------
 
+   procedure Serialize
+     (Arg   : Double_Type;
+      D_Arg : not null access dbus_message_h.DBusMessageIter)
+   is
+   begin
+      Serialize (Code     => Arg.Get_Code,
+                 Arg_Name => "double",
+                 Address  => Arg.Value'Address,
+                 D_Arg    => D_Arg);
+   end Serialize;
+
+   -------------------------------------------------------------------------
+
+   procedure Serialize
+     (Arg   : File_Descriptor_Type;
+      D_Arg : not null access dbus_message_h.DBusMessageIter)
+   is
+   begin
+      Serialize (Code     => Arg.Get_Code,
+                 Arg_Name => "file descriptor",
+                 Address  => Arg.Value'Address,
+                 D_Arg    => D_Arg);
+   end Serialize;
+
+   -------------------------------------------------------------------------
+
    function To_Ada (Arg : Object_Path_Type) return Types.Obj_Path
+   is
+   begin
+      return Arg.Value;
+   end To_Ada;
+
+   -------------------------------------------------------------------------
+
+   function To_Ada (Arg : Signature_Type) return Types.Signature
    is
    begin
       return Arg.Value;
@@ -804,6 +923,22 @@ package body D_Bus.Arguments.Basic is
 
    -------------------------------------------------------------------------
 
+   function To_Ada (Arg : Double_Type) return Double
+   is
+   begin
+      return Arg.Value;
+   end To_Ada;
+
+   -------------------------------------------------------------------------
+
+   function To_Ada (Arg : File_Descriptor_Type) return File_Descriptor
+   is
+   begin
+      return Arg.Value;
+   end To_Ada;
+
+   -------------------------------------------------------------------------
+
    function To_String (Arg : String_Type) return String
    is
    begin
@@ -816,6 +951,14 @@ package body D_Bus.Arguments.Basic is
    is
    begin
       return Types.To_String (Path => Arg.Value);
+   end To_String;
+
+   -------------------------------------------------------------------------
+
+   function To_String (Arg : Signature_Type) return String
+   is
+   begin
+      return Types.To_String (Sig => Arg.Value);
    end To_String;
 
    -------------------------------------------------------------------------
@@ -877,6 +1020,22 @@ package body D_Bus.Arguments.Basic is
    -------------------------------------------------------------------------
 
    function To_String (Arg : Byte_Type) return String
+   is
+   begin
+      return Trim (Source => Arg.Value'Img);
+   end To_String;
+
+   -------------------------------------------------------------------------
+
+   function To_String (Arg : Double_Type) return String
+   is
+   begin
+      return Trim (Source => Arg.Value'Img);
+   end To_String;
+
+   -------------------------------------------------------------------------
+
+   function To_String (Arg : File_Descriptor_Type) return String
    is
    begin
       return Trim (Source => Arg.Value'Img);

@@ -2,6 +2,7 @@
 --  D_Bus/Ada - An Ada binding to D-Bus
 --
 --  Copyright (C) 2011, 2012  Reto Buerki <reet@codelabs.ch>
+--  Copyright (C) 2024  Andrew Athalye
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License
@@ -108,6 +109,26 @@ package D_Bus.Arguments.Basic is
 
    function To_Ada (Arg : Object_Path_Type) return Types.Obj_Path;
    --  Convert D-Bus object path argument to Ada object path.
+
+   ---------------
+   -- SIGNATURE --
+   ---------------
+
+   type Signature_Type is new D_Bus.Arguments.Basic_Type with private;
+   for Signature_Type'External_Tag use "g";
+
+   function To_String (Arg : Signature_Type) return String;
+   function To_Ada (Arg : Signature_Type) return Types.Signature;
+
+   function "+" (Left : Types.Signature) return Signature_Type;
+
+   overriding procedure Serialize
+     (Arg   : Signature_Type;
+      D_Arg : not null access dbus_message_h.DBusMessageIter);
+
+   overriding function Deserialize
+     (D_Arg : not null access dbus_message_h.DBusMessageIter)
+      return Signature_Type;
 
    -------------
    -- BOOLEAN --
@@ -429,6 +450,49 @@ package D_Bus.Arguments.Basic is
    function To_Ada (Arg : Byte_Type) return Byte;
    --  Convert D-Bus byte argument to Ada type.
 
+   ------------
+   -- DOUBLE --
+   ------------
+
+   type Double_Type is new D_Bus.Arguments.Basic_Type with private;
+   for Double_Type'External_Tag use "d";
+
+   function To_String (Arg : Double_Type) return String;
+   function To_Ada (Arg : Double_Type) return Double;
+
+   function "+" (Left : Double) return Double_Type;
+
+   overriding
+   procedure Serialize
+     (Arg   : Double_Type;
+      D_Arg : not null access dbus_message_h.DBusMessageIter);
+
+   overriding
+   function Deserialize
+     (D_Arg : not null access dbus_message_h.DBusMessageIter)
+      return Double_Type;
+
+   ---------------------
+   -- FILE_DESCRIPTOR --
+   ---------------------
+
+   type File_Descriptor_Type is new D_Bus.Arguments.Basic_Type with private;
+   for File_Descriptor_Type'External_Tag use "h";
+
+   function To_String (Arg : File_Descriptor_Type) return String;
+   function To_Ada (Arg : File_Descriptor_Type) return File_Descriptor;
+
+   function "+" (Left : File_Descriptor) return File_Descriptor_Type;
+
+   overriding
+   procedure Serialize
+     (Arg   : File_Descriptor_Type;
+      D_Arg : not null access dbus_message_h.DBusMessageIter);
+
+   overriding
+   function Deserialize
+     (D_Arg : not null access dbus_message_h.DBusMessageIter)
+      return File_Descriptor_Type;
 private
 
    type String_Type is new Basic_Type with record
@@ -437,6 +501,10 @@ private
 
    type Object_Path_Type is new Basic_Type with record
       Value : Types.Obj_Path;
+   end record;
+
+   type Signature_Type is new Basic_Type with record
+      Value : Types.Signature;
    end record;
 
    type Boolean_Type is new Basic_Type with record
@@ -469,6 +537,14 @@ private
 
    type Byte_Type is new Basic_Type with record
       Value : Byte := 0;
+   end record;
+
+   type Double_Type is new Basic_Type with record
+      Value : Double := 0.0;
+   end record;
+
+   type File_Descriptor_Type is new Basic_Type with record
+      Value : File_Descriptor := 0;
    end record;
 
 end D_Bus.Arguments.Basic;

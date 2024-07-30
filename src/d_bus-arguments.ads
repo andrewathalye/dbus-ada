@@ -2,6 +2,7 @@
 --  D_Bus/Ada - An Ada binding to D-Bus
 --
 --  Copyright (C) 2011, 2012  Reto Buerki <reet@codelabs.ch>
+--  Copyright (C) 2024  Andrew Athalye
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License
@@ -124,15 +125,18 @@ private
    Empty_Argument_List : constant Argument_List_Type
      := Argument_List_Type'(others => <>);
 
-   type ASCII_Code is (a, b, e, i, n, o, q, r, s, t, u, v, x, y);
+   type ASCII_Code is (a, b, d, e, g, h, i, n, o, q, r, s, t, u, v, x, y);
    --  ASCII type codes of D-Bus types (see 'Type Signatures' in the D-Bus
    --  specification).
 
    Code_Table : constant array (ASCII_Code) of Integer
      := (a => Character'Pos ('a'),
          b => Character'Pos ('b'),
+         d => Character'Pos ('d'),
          e => Character'Pos ('e'),
          i => Character'Pos ('i'),
+         g => Character'Pos ('g'),
+         h => Character'Pos ('h'),
          n => Character'Pos ('n'),
          o => Character'Pos ('o'),
          q => Character'Pos ('q'),

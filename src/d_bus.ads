@@ -2,6 +2,7 @@
 --  D_Bus/Ada - An Ada binding to D-Bus
 --
 --  Copyright (C) 2011, 2012  Reto Buerki <reet@codelabs.ch>
+--  Copyright (C) 2024  Andrew Athalye
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License
@@ -26,9 +27,11 @@
 --  executable file might be covered by the GNU Public License.
 --
 
+with Interfaces;
+
 package D_Bus is
 
-   pragma Preelaborate;
+   pragma Pure;
 
    type Bus_Type is
      (Bus_Session,
@@ -63,6 +66,15 @@ package D_Bus is
    type Signed_64 is range -2 ** 63 .. 2 ** 63 - 1;
    for Signed_64'Size use 64;
    --  64 bit signed number.
+
+   type Double is new Interfaces.IEEE_Float_64;
+   for Double'Size use 64;
+   --  Double-precision real number
+   --  Definition would be implementation-dependent
+
+   type File_Descriptor is mod 2 ** 32;
+   for File_Descriptor'Size use 32;
+   --  UNIX File Descriptor
 
    D_Bus_Error : exception;
 

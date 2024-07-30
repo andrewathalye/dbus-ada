@@ -7,60 +7,50 @@ inter-process communication on most modern Linux desktop systems.
 
 Licence
 -------
---------------------------------------------------------------------------------
-Copyright (C) 2011-2019 Reto Buerki <reet@codelabs.ch>. Free use of this
-software is granted under the terms of the GNAT Modified General Public License
-(GMGPL).
---------------------------------------------------------------------------------
+```
+Copyright (C) 2011-2019 Reto Buerki <reet@codelabs.ch>.
+Copyright (C) 2024 Andrew Athalye
+Free use of this software is granted under the terms of the GNAT Modified
+General Public License (GMGPL).
+```
 
+Github
+------
+This is my personal fork of D_Bus/Ada with a number of fixes, specificially for
+GNAT 13 and empty containers. It is used by my DBus Binding Generator.
 
-Download
---------
+I hope to submit it to the original author in due time, but it’s not yet
+production ready.
 
-Release version
-~~~~~~~~~~~~~~~
-The current release version of D_Bus/Ada is available at
-https://www.codelabs.ch/download/.
+I don’t intend to maintain the Makefile at this time, but I won’t actively break
+it either. It may or may not work.
 
-Verify a Release
-~~~~~~~~~~~~~~~~
-To verify the integrity and authenticity of the distribution tarball type the
-following commands:
+Current Changes:
+Add type Double_Type
+Add type File_Descriptor_Type
+Add type Signature_Type
 
-  $ wget -q https://www.codelabs.ch/keys/DBF6D7E1095FD0D9.asc -O - | gpg --import
-  $ gpg --verify libdbusada-{version}.tar.bz2.sig
+Add basic type Double
+Add basic type File_Descriptor
+Add basic type Signature
 
-The key fingerprint of the public key ('0xDBF6D7E1095FD0D9') is:
-
-  Key fingerprint = 298F 4B32 C3C4 1D88 5949  86F3 DBF6 D7E1 095F D0D9
-
-Development version
-~~~~~~~~~~~~~~~~~~~
-The current development version of D_Bus/Ada is available through its git
-repository:
-
-  $ git clone https://git.codelabs.ch/dbus-ada.git
-
-A browsable version of the repository is available here:
-https://git.codelabs.ch/?p=dbus-ada.git.
-
+Allow empty containers.
 
 Build
 -----
-To compile D_Bus/Ada on your system, you need to have the following software
-installed:
+D_Bus/Ada may be built using Nix:
 
-* GNAT compiler:
-  https://www.gnu.org/software/gnat
+```
+  $ nix build
+```
 
-* Ahven (Test-Framework):
-  http://ahven.stronglytyped.org
+Development is via Nix shells:
 
-* D-Bus development files and libraries
-  https://www.freedesktop.org/wiki/Software/dbus
+```
+  $ nix develop
+```
 
-* Glib with D-Bus support
-
+Dependencies: gnat, gprbuild, dbus, dbus-glib
 
 Testing
 -------
@@ -68,23 +58,17 @@ Before you install D_Bus/Ada on your system, you might want to test the library
 and verify that everything works as expected. D_Bus/Ada contains an unit test
 suite which can be run by entering the following command:
 
+```
   $ make tests
-
-
-Installation
-------------
-To install D_Bus/Ada on your system, type the following:
-
-  $ make PREFIX=/usr/local install
-
-If no `PREFIX` is specified, `$(HOME)/libraries` is used as install destination.
-
+```
 
 Examples
 --------
 D_Bus/Ada provides example code to demonstrate the usage of the D_Bus/Ada API.
 To build all examples type the following:
 
+```
   $ make examples
+```
 
 You can start an example application like so: `obj/examples/list_names`.
