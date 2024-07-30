@@ -1,7 +1,7 @@
-D_Bus/Ada
+D\_Bus/Ada
 =========
 
-The D_Bus/Ada library provides an Ada binding to the D-Bus message bus used for
+The D\_Bus/Ada library provides an Ada binding to the D-Bus message bus used for
 inter-process communication on most modern Linux desktop systems.
 
 
@@ -16,7 +16,7 @@ General Public License (GMGPL).
 
 Github
 ------
-This is my personal fork of D_Bus/Ada with a number of fixes, specificially for
+This is my personal fork of D\_Bus/Ada with a number of fixes, specificially for
 GNAT 13 and empty containers. It is used by my DBus Binding Generator.
 
 I hope to submit it to the original author in due time, but it’s not yet
@@ -26,6 +26,8 @@ I don’t intend to maintain the Makefile at this time, but I won’t actively b
 it either. It may or may not work.
 
 Current Changes:
+----------------
+```
 Add type Double_Type
 Add type File_Descriptor_Type
 Add type Signature_Type
@@ -35,10 +37,11 @@ Add basic type File_Descriptor
 Add basic type Signature
 
 Allow empty containers.
+```
 
 Build
 -----
-D_Bus/Ada may be built using Nix:
+D\_Bus/Ada may be built using Nix:
 
 ```
   $ nix build
@@ -54,8 +57,8 @@ Dependencies: gnat, gprbuild, dbus, dbus-glib
 
 Testing
 -------
-Before you install D_Bus/Ada on your system, you might want to test the library
-and verify that everything works as expected. D_Bus/Ada contains an unit test
+Before you install D\_Bus/Ada on your system, you might want to test the library
+and verify that everything works as expected. D\_Bus/Ada contains an unit test
 suite which can be run by entering the following command:
 
 ```
@@ -64,7 +67,7 @@ suite which can be run by entering the following command:
 
 Examples
 --------
-D_Bus/Ada provides example code to demonstrate the usage of the D_Bus/Ada API.
+D\_Bus/Ada provides example code to demonstrate the usage of the D\_Bus/Ada API.
 To build all examples type the following:
 
 ```
