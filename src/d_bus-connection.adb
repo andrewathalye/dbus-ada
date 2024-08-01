@@ -228,6 +228,47 @@ package body D_Bus.Connection is
 
    -------------------------------------------------------------------------
 
+   function Connect_Private
+     (Bus : Bus_Type := Bus_Session) return Connection_Type
+   is
+      D_Err : aliased dbus_errors_h.DBusError;
+   begin
+      return Result : constant Connection_Type
+         := (Thin_Connection => dbus_bus_h.dbus_bus_get_private
+               (c_type => Bus_Types (Bus),
+                error  => D_Err'Access))
+      do
+         Check (Result => D_Err'Access);
+      end return;
+   end Connect_Private;
+
+   -------------------------------------------------------------------------
+
+   function Connect_Private (Address : String) return Connection_Type
+   is
+      C_Addr : C.Strings.chars_ptr := C.Strings.New_String (Str => Address);
+      D_Err  : aliased dbus_errors_h.DBusError;
+   begin
+      return Result : constant Connection_Type
+         := (Thin_Connection => dbus_connection_h.dbus_connection_open_private
+               (address => C_Addr,
+                error   => D_Err'Access))
+      do
+         C.Strings.Free (Item => C_Addr);
+         Check (Result => D_Err'Access);
+      end return;
+   end Connect_Private;
+
+   -------------------------------------------------------------------------
+
+   procedure Disconnect (Connection : in out Connection_Type)
+   is
+   begin
+      dbus_connection_h.dbus_connection_close (Connection.Thin_Connection);
+
+      Connection := Null_Connection;
+   end Disconnect;
+
    procedure Flush (Connection : Connection_Type)
    is
    begin
@@ -261,6 +302,49 @@ package body D_Bus.Connection is
         (connection           => Connection.Thin_Connection,
          timeout_milliseconds => C.int (Timeout_Msec)) = 1;
    end Read_Write;
+
+   -------------------------------------------------------------------------
+
+   procedure Release_Name
+     (Connection : Connection_Type;
+      Name       : String)
+   is
+      use type C.int;
+
+      C_Res : C.int;
+      D_Err : aliased dbus_errors_h.DBusError;
+      C_Name : C.Strings.chars_ptr := C.Strings.New_String (Name);
+   begin
+      C_Res := dbus_bus_h.dbus_bus_release_name
+        (connection => Connection.Thin_Connection,
+         name => C_Name,
+         error => D_Err'Access);
+
+      C.Strings.Free (C_Name);
+
+      if C_Res /= dbus_shared_h.DBUS_RELEASE_NAME_REPLY_RELEASED then
+         raise D_Bus_Error
+           with "Unable to release name " & Name & " (" & C_Res'Img & ")";
+      end if;
+   end Release_Name;
+
+   -------------------------------------------------------------------------
+
+   procedure Remove_Match
+     (Connection : Connection_Type;
+      Rule       : String)
+   is
+      D_Err : aliased dbus_errors_h.DBusError;
+      C_Str : C.Strings.chars_ptr := C.Strings.New_String
+        (Str => Rule);
+   begin
+      dbus_bus_h.dbus_bus_remove_match
+        (connection => Connection.Thin_Connection,
+         rule       => C_Str,
+         error      => D_Err'Access);
+      C.Strings.Free (Item => C_Str);
+      Check (Result => D_Err'Access);
+   end Remove_Match;
 
    -------------------------------------------------------------------------
 

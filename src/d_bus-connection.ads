@@ -34,17 +34,31 @@ with D_Bus.Messages;
 with D_Bus.Types;
 
 package D_Bus.Connection is
-
    type Connection_Type is private;
    --  D-Bus connection.
 
    Null_Connection : constant Connection_Type;
 
    function Connect (Bus : Bus_Type := Bus_Session) return Connection_Type;
-   --  Connect to the given message bus type.
+   --  Connect to the given message bus type and return
+   --  a shared connection. This is not thread-safe.
 
    function Connect (Address : String) return Connection_Type;
-   --  Connect to the given remote address.
+   --  Connect to the given remote address and return
+   --  a shared connection. This is not thread-safe.
+
+   function Connect_Private
+     (Bus : Bus_Type := Bus_Session) return Connection_Type;
+   --  Connect to the given message bus type and return
+   --  a unique connection.
+
+   function Connect_Private (Address : String) return Connection_Type;
+   --  Connect to the given remote address and return
+   --  a unique connection.
+
+   procedure Disconnect (Connection : in out Connection_Type);
+   --  Disconnect from a unique connection. If used on a shared
+   --  connection, this will raise an exception.
 
    subtype Timeout_Type is Integer range -1 .. Integer'Last;
 
@@ -81,10 +95,20 @@ package D_Bus.Connection is
       Name       : String);
    --  Request name on the bus for given connection.
 
+   procedure Release_Name
+     (Connection : Connection_Type;
+      Name       : String);
+   --  Release name on the bus for given connection.
+
    procedure Add_Match
      (Connection : Connection_Type;
       Rule       : String);
    --  Add given match rule to match messages going through the message bus.
+
+   procedure Remove_Match
+     (Connection : Connection_Type;
+      Rule       : String);
+   --  Remove given match rule on messages going through the message bus.
 
    function Read_Write
      (Connection   : Connection_Type;

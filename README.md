@@ -28,15 +28,22 @@ it either. It may or may not work.
 Current Changes:
 ----------------
 ```
-Add type Double_Type
-Add type File_Descriptor_Type
-Add type Signature_Type
+D_Bus.Arguments.Simple:
+    Add type Double_Type
+    Add type File_Descriptor_Type
+    Add type Signature_Type
+D_Bus:
+    Add basic type Double
+    Add basic type File_Descriptor
+    Add basic type Signature
 
-Add basic type Double
-Add basic type File_Descriptor
-Add basic type Signature
+D_Bus.Arguments.Containers:
+    Allow empty containers.
 
-Allow empty containers.
+D_Bus.Connection:
+    Connect_Private
+    Release_Name
+    Remove_Match
 ```
 
 Build
