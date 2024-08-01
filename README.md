@@ -44,6 +44,10 @@ D_Bus.Connection:
     Connect_Private
     Release_Name
     Remove_Match
+
+D_Bus.G_Main:
+    Iteration
+    Remove Init
 ```
 
 Build

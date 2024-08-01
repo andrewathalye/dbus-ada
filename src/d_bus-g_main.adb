@@ -45,15 +45,17 @@ package body D_Bus.G_Main is
    procedure g_main_loop_run (the_loop : System.Address);
    pragma Import (C, g_main_loop_run, "g_main_loop_run");
 
+   function g_main_context_iteration
+     (Context : System.Address;
+      May_Block : Interfaces.C.int) return Interfaces.C.int;
+   pragma Import (C, g_main_context_iteration, "g_main_context_iteration");
+
    -------------------------------------------------------------------------
 
+   procedure Init;
    procedure Init
    is
    begin
-      if Main_Loop /= System.Null_Address then
-         raise D_Bus_Error with "GLib main loop already initialized";
-      end if;
-
       Main_Loop := g_main_loop_new
         (context    => System.Null_Address,
          is_running => 0);
@@ -62,6 +64,19 @@ package body D_Bus.G_Main is
          raise D_Bus_Error with "Could not initialize GLib main loop";
       end if;
    end Init;
+
+   -------------------------------------------------------------------------
+
+   procedure Iteration
+   is
+      Discard : Interfaces.C.int;
+   begin
+      if Main_Loop = System.Null_Address then
+         Init;
+      end if;
+
+      Discard := g_main_context_iteration (Main_Loop, 1);
+   end Iteration;
 
    -------------------------------------------------------------------------
 
@@ -74,5 +89,7 @@ package body D_Bus.G_Main is
 
       g_main_loop_run (the_loop => Main_Loop);
    end Start;
+
+   -------------------------------------------------------------------------
 
 end D_Bus.G_Main;
