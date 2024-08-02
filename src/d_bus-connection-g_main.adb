@@ -42,7 +42,7 @@ package body D_Bus.Connection.G_Main is
 
    procedure dbus_connection_setup_with_g_main
      (connection : access dbus_connection_h.DBusConnection;
-      context    : System.Address);
+      context    : D_Bus.G_Main.Main_Context);
    pragma Import (C, dbus_connection_setup_with_g_main,
                   "dbus_connection_setup_with_g_main");
 
@@ -144,12 +144,14 @@ package body D_Bus.Connection.G_Main is
 
    -------------------------------------------------------------------------
 
-   procedure Setup_With_G_Main (Connection : in out Connection_Type)
+   procedure Setup_With_G_Main
+     (Connection : in out Connection_Type;
+      Context : D_Bus.G_Main.Main_Context := D_Bus.G_Main.Default_Context)
    is
    begin
       dbus_connection_setup_with_g_main
         (connection => Connection.Thin_Connection,
-         context    => System.Null_Address);
+         context    => Context);
    end Setup_With_G_Main;
 
 end D_Bus.Connection.G_Main;

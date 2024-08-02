@@ -26,61 +26,86 @@
 --  executable file might be covered by the GNU Public License.
 --
 
-with System;
+with Ada.Task_Attributes;
 
 with Interfaces.C;
 
 package body D_Bus.G_Main is
+   ------------------------
+   -- Imported from Glib --
+   ------------------------
+   function g_main_context_acquire
+     (Context : Main_Context) return Interfaces.C.int;
+   pragma Import (C, g_main_context_acquire);
 
-   use type System.Address;
+   function g_main_context_new return Main_Context;
+   pragma Import (C, g_main_context_new);
 
-   Main_Loop : System.Address := System.Null_Address;
+   procedure g_main_context_unref (Context : Main_Context);
+   pragma Import (C, g_main_context_unref);
 
-   function g_main_loop_new
-     (context    : System.Address;
-      is_running : Interfaces.C.int)
-      return System.Address;
-   pragma Import (C, g_main_loop_new, "g_main_loop_new");
+   procedure g_main_context_release (Context : Main_Context);
+   pragma Import (C, g_main_context_release);
 
-   procedure g_main_loop_run (the_loop : System.Address);
-   pragma Import (C, g_main_loop_run, "g_main_loop_run");
+   function g_main_context_iteration
+     (Context : Main_Context;
+      Blocking : Interfaces.C.int) return Interfaces.C.int;
+   pragma Import (C, g_main_context_iteration);
 
-   procedure g_main_loop_quit (the_loop : System.Address);
-   pragma Import (C, g_main_loop_quit, "g_main_loop_quit");
+   -----------------------
+   -- Thread-Local Quit --
+   -----------------------
+   package Thread_Local_Quit is new Ada.Task_Attributes (Boolean, False);
 
-   -------------------------------------------------------------------------
-
-   procedure Init;
-   procedure Init
-   is
+   ------------
+   -- Create --
+   ------------
+   function Create return Main_Context is
    begin
-      Main_Loop := g_main_loop_new
-        (context    => System.Null_Address,
-         is_running => 0);
+      return g_main_context_new;
+   end Create;
 
-      if Main_Loop = System.Null_Address then
-         raise D_Bus_Error with "Could not initialize GLib main loop";
-      end if;
-   end Init;
+   -------------
+   -- Destroy --
+   -------------
+   procedure Destroy (Context : in out Main_Context) is
+   begin
+      g_main_context_unref (Context);
 
-   -------------------------------------------------------------------------
+      Context := Default_Context;
+   end Destroy;
 
+   ----------
+   -- Quit --
+   ----------
    procedure Quit
    is
    begin
-      g_main_loop_quit (the_loop => Main_Loop);
+      Thread_Local_Quit.Set_Value (True);
    end Quit;
 
-   -------------------------------------------------------------------------
-
-   procedure Start
+   -----------
+   -- Start --
+   -----------
+   procedure Start (Context : Main_Context := Default_Context)
    is
+      use type Interfaces.C.int;
+
+      Result, Discard : Interfaces.C.int;
    begin
-      g_main_loop_run (the_loop => Main_Loop);
+      --  Lock the context to this thread only
+      Result := g_main_context_acquire (Context);
+
+      if Result = 1 then
+         while not Thread_Local_Quit.Value loop
+            Discard := g_main_context_iteration (Context, 1);
+         end loop;
+
+         Thread_Local_Quit.Set_Value (False);
+      else
+         raise D_Bus_Error with "Could not claim ownership of main context.";
+      end if;
+
+      g_main_context_release (Context);
    end Start;
-
-   -------------------------------------------------------------------------
-
-begin
-   Init;
 end D_Bus.G_Main;

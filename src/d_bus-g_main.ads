@@ -26,11 +26,30 @@
 --  executable file might be covered by the GNU Public License.
 --
 
-package D_Bus.G_Main is
+with System;
 
-   procedure Start;
-   --  Start GLib main event loop.
+package D_Bus.G_Main is
+   type Main_Context is private;
+   Default_Context : constant Main_Context;
+
+   procedure Start (Context : Main_Context := Default_Context);
+   --  Run the main loop associated with `Context`. This will
+   --  take ownership of `Context`, and no other thread will
+   --  be able to use it until it terminates.
 
    procedure Quit;
-   --  Quit GLib main event loop
+   --  Quit the most deeply-nested main loop running on the current
+   --  thread.
+
+   function Create return Main_Context;
+   --  Return a new main context.
+
+   procedure Destroy (Context : in out Main_Context);
+   --  Release all resources held by the main context.
+   --  `Context` is invalid after calling `Destroy`
+private
+   type Main_Context is new System.Address;
+
+   Default_Context : constant Main_Context := Main_Context
+     (System.Null_Address);
 end D_Bus.G_Main;

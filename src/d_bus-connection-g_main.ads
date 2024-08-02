@@ -30,13 +30,18 @@ with Ada.Strings.Unbounded;
 with Ada.Containers.Indefinite_Ordered_Maps;
 
 with D_Bus.Service;
+with D_Bus.G_Main;
 
 package D_Bus.Connection.G_Main is
 
    use type D_Bus.Types.Obj_Path;
 
-   procedure Setup_With_G_Main (Connection : in out Connection_Type);
-   --  Integrate the given connection with the GLib main loop.
+   procedure Setup_With_G_Main
+     (Connection : in out Connection_Type;
+      Context : D_Bus.G_Main.Main_Context := D_Bus.G_Main.Default_Context);
+   --  Integrate the given connection with `Context`.
+   --  Only one thread can use `Context` at a time,
+   --  and only one context can be associated with `Connection`
 
    procedure Register_Object
      (Connection :        Connection_Type;

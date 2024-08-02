@@ -47,7 +47,13 @@ D_Bus.Connection:
 
 D_Bus.G_Main:
     Remove Init
-    Quit
+    Add type Main_Context
+    Replace Start with Start (Main_Context)
+    Add Quit
+    Add Create, Destroy (Main_Context)
+
+D_Bus.Connection.G_Main:
+    Allow specifying context in Setup_With_G_Main
 ```
 
 Build
