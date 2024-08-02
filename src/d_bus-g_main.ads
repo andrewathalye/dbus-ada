@@ -31,6 +31,6 @@ package D_Bus.G_Main is
    procedure Start;
    --  Start GLib main event loop.
 
-   procedure Iteration;
-   --  Run one iteration of the GLib main event loop.
+   procedure Quit;
+   --  Quit GLib main event loop
 end D_Bus.G_Main;

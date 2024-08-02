@@ -45,10 +45,8 @@ package body D_Bus.G_Main is
    procedure g_main_loop_run (the_loop : System.Address);
    pragma Import (C, g_main_loop_run, "g_main_loop_run");
 
-   function g_main_context_iteration
-     (Context : System.Address;
-      May_Block : Interfaces.C.int) return Interfaces.C.int;
-   pragma Import (C, g_main_context_iteration, "g_main_context_iteration");
+   procedure g_main_loop_quit (the_loop : System.Address);
+   pragma Import (C, g_main_loop_quit, "g_main_loop_quit");
 
    -------------------------------------------------------------------------
 
@@ -67,29 +65,22 @@ package body D_Bus.G_Main is
 
    -------------------------------------------------------------------------
 
-   procedure Iteration
+   procedure Quit
    is
-      Discard : Interfaces.C.int;
    begin
-      if Main_Loop = System.Null_Address then
-         Init;
-      end if;
-
-      Discard := g_main_context_iteration (Main_Loop, 1);
-   end Iteration;
+      g_main_loop_quit (the_loop => Main_Loop);
+   end Quit;
 
    -------------------------------------------------------------------------
 
    procedure Start
    is
    begin
-      if Main_Loop = System.Null_Address then
-         Init;
-      end if;
-
       g_main_loop_run (the_loop => Main_Loop);
    end Start;
 
    -------------------------------------------------------------------------
 
+begin
+   Init;
 end D_Bus.G_Main;

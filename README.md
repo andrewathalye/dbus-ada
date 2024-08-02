@@ -46,8 +46,8 @@ D_Bus.Connection:
     Remove_Match
 
 D_Bus.G_Main:
-    Iteration
     Remove Init
+    Quit
 ```
 
 Build
