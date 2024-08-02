@@ -26,22 +26,27 @@
 --  executable file might be covered by the GNU Public License.
 --
 
-with System;
+private with System;
 
 package D_Bus.G_Main is
    type Main_Context is private;
-   Default_Context : constant Main_Context;
+   --  A Glib MainContext type. Each thread has a default main context,
+   --  but it is also possible to make additional ones.
+
+   function Default_Context return Main_Context;
+   --  Get the default context for the current thread.
+   --  It is valid _only_ on the current thread.
 
    procedure Start (Context : Main_Context := Default_Context);
-   --  Run the main loop associated with `Context`. This will
-   --  take ownership of `Context`, and no other thread will
-   --  be able to use it until it terminates.
+   --  Run the main loop associated with `Context`.
 
    procedure Quit;
    --  Quit the most deeply-nested main loop running on the current
    --  thread.
 
    function Create return Main_Context;
+   pragma Import
+     (C, Create, "g_main_context_new");
    --  Return a new main context.
 
    procedure Destroy (Context : in out Main_Context);
@@ -49,7 +54,4 @@ package D_Bus.G_Main is
    --  `Context` is invalid after calling `Destroy`
 private
    type Main_Context is new System.Address;
-
-   Default_Context : constant Main_Context := Main_Context
-     (System.Null_Address);
 end D_Bus.G_Main;

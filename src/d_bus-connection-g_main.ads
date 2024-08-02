@@ -40,8 +40,7 @@ package D_Bus.Connection.G_Main is
      (Connection : in out Connection_Type;
       Context : D_Bus.G_Main.Main_Context := D_Bus.G_Main.Default_Context);
    --  Integrate the given connection with `Context`.
-   --  Only one thread can use `Context` at a time,
-   --  and only one context can be associated with `Connection`
+   --  Only one context may be associated with a given connection.
 
    procedure Register_Object
      (Connection :        Connection_Type;

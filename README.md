@@ -44,6 +44,7 @@ D_Bus.Connection:
     Connect_Private
     Release_Name
     Remove_Match
+    Free
 
 D_Bus.G_Main:
     Remove Init

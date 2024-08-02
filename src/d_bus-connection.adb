@@ -233,12 +233,15 @@ package body D_Bus.Connection is
    is
       D_Err : aliased dbus_errors_h.DBusError;
    begin
-      return Result : constant Connection_Type
-         := (Thin_Connection => dbus_bus_h.dbus_bus_get_private
-               (c_type => Bus_Types (Bus),
-                error  => D_Err'Access))
+      return Result : Connection_Type
       do
+         Result.Thin_Connection := dbus_bus_h.dbus_bus_get_private
+           (c_type => Bus_Types (Bus), error => D_Err'Access);
+
          Check (Result => D_Err'Access);
+
+         dbus_connection_h.dbus_connection_set_exit_on_disconnect
+           (Result.Thin_Connection, 0);
       end return;
    end Connect_Private;
 
@@ -261,13 +264,13 @@ package body D_Bus.Connection is
 
    -------------------------------------------------------------------------
 
-   procedure Disconnect (Connection : in out Connection_Type)
+   procedure Disconnect (Connection : Connection_Type)
    is
    begin
       dbus_connection_h.dbus_connection_close (Connection.Thin_Connection);
-
-      Connection := Null_Connection;
    end Disconnect;
+
+   -------------------------------------------------------------------------
 
    procedure Flush (Connection : Connection_Type)
    is
@@ -275,6 +278,14 @@ package body D_Bus.Connection is
       dbus_connection_h.dbus_connection_flush
         (connection => Connection.Thin_Connection);
    end Flush;
+
+   -------------------------------------------------------------------------
+
+   procedure Free (Connection : in out Connection_Type) is
+   begin
+      dbus_connection_h.dbus_connection_unref (Connection.Thin_Connection);
+      Connection.Thin_Connection := null;
+   end Free;
 
    -------------------------------------------------------------------------
 

@@ -36,6 +36,8 @@ with D_Bus.Types;
 package D_Bus.Connection is
    type Connection_Type is private;
    --  D-Bus connection.
+   --  Creating a connection of any type allocates data,
+   --  which must be freed by calling `Free`.
 
    Null_Connection : constant Connection_Type;
 
@@ -56,9 +58,16 @@ package D_Bus.Connection is
    --  Connect to the given remote address and return
    --  a unique connection.
 
-   procedure Disconnect (Connection : in out Connection_Type);
-   --  Disconnect from a unique connection. If used on a shared
-   --  connection, this will raise an exception.
+   procedure Free (Connection : in out Connection_Type);
+   --  Free the data associated with a connection. This should
+   --  be called on any connection after it is done being used.
+   --
+   --  You must call `Disconnect` on a unique connection before
+   --  attempting to free it.
+
+   procedure Disconnect (Connection : Connection_Type);
+   --  Disconnect from a unique connection. The connection will
+   --  be invalid after this, but its data will not be freed.
 
    subtype Timeout_Type is Integer range -1 .. Integer'Last;
 

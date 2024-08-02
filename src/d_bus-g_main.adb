@@ -31,15 +31,17 @@ with Ada.Task_Attributes;
 with Interfaces.C;
 
 package body D_Bus.G_Main is
+   ---------------
+   -- Constants --
+   ---------------
+   Null_Context : constant Main_Context := Main_Context (System.Null_Address);
+
    ------------------------
    -- Imported from Glib --
    ------------------------
    function g_main_context_acquire
      (Context : Main_Context) return Interfaces.C.int;
    pragma Import (C, g_main_context_acquire);
-
-   function g_main_context_new return Main_Context;
-   pragma Import (C, g_main_context_new);
 
    procedure g_main_context_unref (Context : Main_Context);
    pragma Import (C, g_main_context_unref);
@@ -52,18 +54,24 @@ package body D_Bus.G_Main is
       Blocking : Interfaces.C.int) return Interfaces.C.int;
    pragma Import (C, g_main_context_iteration);
 
-   -----------------------
-   -- Thread-Local Quit --
-   -----------------------
+   ------------------
+   -- Thread-Local --
+   ------------------
    package Thread_Local_Quit is new Ada.Task_Attributes (Boolean, False);
+   package Thread_Local_Context is new Ada.Task_Attributes
+     (Main_Context, Null_Context);
 
-   ------------
-   -- Create --
-   ------------
-   function Create return Main_Context is
+   ---------------------
+   -- Default_Context --
+   ---------------------
+   function Default_Context return Main_Context is
    begin
-      return g_main_context_new;
-   end Create;
+      if Thread_Local_Context.Value = Null_Context then
+         Thread_Local_Context.Set_Value (Create);
+      end if;
+
+      return Thread_Local_Context.Value;
+   end Default_Context;
 
    -------------
    -- Destroy --
@@ -72,7 +80,7 @@ package body D_Bus.G_Main is
    begin
       g_main_context_unref (Context);
 
-      Context := Default_Context;
+      Context := Null_Context;
    end Destroy;
 
    ----------
@@ -93,6 +101,11 @@ package body D_Bus.G_Main is
 
       Result, Discard : Interfaces.C.int;
    begin
+      --  Sanity checks
+      if Context = Null_Context then
+         raise D_Bus_Error with "Context was null";
+      end if;
+
       --  Lock the context to this thread only
       Result := g_main_context_acquire (Context);
 
