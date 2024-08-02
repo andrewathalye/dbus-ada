@@ -37,7 +37,7 @@ package D_Bus.Connection.G_Main is
    use type D_Bus.Types.Obj_Path;
 
    procedure Setup_With_G_Main
-     (Connection : in out Connection_Type;
+     (Connection : Connection_Type;
       Context : D_Bus.G_Main.Main_Context := D_Bus.G_Main.Default_Context);
    --  Integrate the given connection with `Context`.
    --  Only one context may be associated with a given connection.

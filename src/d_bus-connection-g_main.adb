@@ -145,7 +145,7 @@ package body D_Bus.Connection.G_Main is
    -------------------------------------------------------------------------
 
    procedure Setup_With_G_Main
-     (Connection : in out Connection_Type;
+     (Connection : Connection_Type;
       Context : D_Bus.G_Main.Main_Context := D_Bus.G_Main.Default_Context)
    is
    begin

@@ -55,6 +55,7 @@ D_Bus.G_Main:
 
 D_Bus.Connection.G_Main:
     Allow specifying context in Setup_With_G_Main
+    Make `Connection` an in parameter in Setup_With_G_Main
 ```
 
 Build
