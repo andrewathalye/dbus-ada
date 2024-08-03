@@ -28,6 +28,10 @@ it either. It may or may not work.
 Current Changes:
 ----------------
 ```
+D_Bus.Types:
+    Add type Obj_Path (with default value)
+    Add type Signature
+
 D_Bus.Arguments.Simple:
     Add type Double_Type
     Add type File_Descriptor_Type
@@ -35,7 +39,6 @@ D_Bus.Arguments.Simple:
 D_Bus:
     Add basic type Double
     Add basic type File_Descriptor
-    Add basic type Signature
 
 D_Bus.Arguments.Containers:
     Allow empty containers.

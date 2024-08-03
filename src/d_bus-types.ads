@@ -56,9 +56,11 @@ package D_Bus.Types is
    --  Return True if `Sig` would be a valid `Signature`
 
 private
+   Impl_Null_Obj_Path : constant Ada.Strings.Unbounded.Unbounded_String :=
+      Ada.Strings.Unbounded.To_Unbounded_String ("/");
 
    type Obj_Path is record
-      Value : Ada.Strings.Unbounded.Unbounded_String;
+      Value : Ada.Strings.Unbounded.Unbounded_String := Impl_Null_Obj_Path;
    end record;
 
    type Signature is record
