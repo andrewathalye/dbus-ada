@@ -47,7 +47,11 @@ D_Bus.Connection:
     Connect_Private
     Release_Name
     Remove_Match
-    Free
+    Ref
+    Call_No_Reply
+    Unref
+
+    No connections exit on disconnect by default.
 
 D_Bus.G_Main:
     Remove Init

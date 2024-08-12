@@ -2,6 +2,7 @@
 --  D_Bus/Ada - An Ada binding to D-Bus
 --
 --  Copyright (C) 2011-2015  Reto Buerki <reet@codelabs.ch>
+--  Copyright (C) 2024 Andrew Athalye
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License
@@ -41,6 +42,13 @@ package D_Bus.Connection is
 
    Null_Connection : constant Connection_Type;
 
+   -------------
+   -- CONNECT --
+   -------------
+   --  These subprograms additionally and implicitly `Ref` the
+   --  Connection_Type which they return. The connection must be
+   --  `Unref`’d to avoid a memory leak.
+
    function Connect (Bus : Bus_Type := Bus_Session) return Connection_Type;
    --  Connect to the given message bus type and return
    --  a shared connection. This is not thread-safe.
@@ -58,17 +66,36 @@ package D_Bus.Connection is
    --  Connect to the given remote address and return
    --  a unique connection.
 
-   procedure Free (Connection : in out Connection_Type);
-   --  Free the data associated with a connection. This should
-   --  be called on any connection after it is done being used.
-   --
-   --  You must call `Disconnect` on a unique connection before
-   --  attempting to free it.
-
-   procedure Disconnect (Connection : Connection_Type);
+   procedure Disconnect (Connection : in out Connection_Type);
    --  Disconnect from a unique connection. The connection will
-   --  be invalid after this, but its data will not be freed.
+   --  be invalid after this and its data will be freed unless
+   --  `Connection` was `Ref`’d by another consumer.
 
+   ----------------
+   -- REFERENCES --
+   ----------------
+   --  Reference management is thread-safe, but pay careful attention
+   --  to the description of each and every subprogram.
+
+   function Ref (Connection : Connection_Type) return Connection_Type;
+   --  Add a reference to the count associated with `Connection` and
+   --  return `Connection` for convenience.
+   --
+   --  This should be called if a consumer wishes to guarantee that
+   --  they hold a valid `Connection_Type`.
+
+   procedure Unref (Connection : in out Connection_Type);
+   --  Remove a reference from the count associated with `Connection`
+   --  `Connection` will then be made invalid so it cannot be used.
+   --
+   --  The underlying data will be freed automatically when there
+   --  are no more references to `Connection`.
+   --
+   --  Never call `Unref` more times than you called `Ref` or `Connect*`
+
+   ---------------------
+   -- MESSAGE PASSING --
+   ---------------------
    subtype Timeout_Type is Integer range -1 .. Integer'Last;
 
    Default_Timeout : constant Timeout_Type;
@@ -84,6 +111,16 @@ package D_Bus.Connection is
         Arguments.Empty_Argument_List)
       return Arguments.Argument_List_Type;
    --  Synchronously call the given method.
+
+   procedure Call_No_Reply
+     (Connection   : Connection_Type;
+      Destination  : String;
+      Path         : Types.Obj_Path;
+      Iface        : String;
+      Method       : String;
+      Args         : Arguments.Argument_List_Type :=
+        Arguments.Empty_Argument_List);
+   --  Call the given method but do not wait for or allow a reply.
 
    procedure Send_Signal
      (Connection  : Connection_Type;

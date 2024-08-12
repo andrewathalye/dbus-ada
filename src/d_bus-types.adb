@@ -96,6 +96,11 @@ package body D_Bus.Types is
       D_Res := dbus_signature_h.dbus_signature_validate (Sig_C, D_Err'Access);
       Interfaces.C.Strings.Free (Sig_C);
 
+      --  Free memory used for the error
+      if dbus_errors_h.dbus_error_is_set (D_Err'Access) = 1 then
+         dbus_errors_h.dbus_error_free (D_Err'Access);
+      end if;
+
       return D_Res = 1;
    end Is_Valid_Signature;
 

@@ -708,6 +708,8 @@ package body D_Bus.Arguments.Basic is
                  Arg_Name => "signature",
                  Address  => D_String'Address,
                  D_Arg    => D_Arg);
+
+      C.Strings.Free (Item => D_String);
    end Serialize;
 
    -------------------------------------------------------------------------

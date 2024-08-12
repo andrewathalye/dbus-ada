@@ -110,21 +110,6 @@ package body D_Bus.Connection is
       C_Path   : C.Strings.chars_ptr;
       C_Iface  : C.Strings.chars_ptr;
       C_Method : C.Strings.chars_ptr;
-
-      ----------------------------------------------------------------------
-
-      procedure Free_Strings;
-      --  Free allocated memory.
-
-      procedure Free_Strings
-      is
-      begin
-         C.Strings.Free (Item => C_Dest);
-         C.Strings.Free (Item => C_Path);
-         C.Strings.Free (Item => C_Iface);
-         C.Strings.Free (Item => C_Method);
-      end Free_Strings;
-
    begin
       C_Dest   := C.Strings.New_String (Str => Destination);
       C_Path   := C.Strings.New_String (Str => Types.To_String (Path));
@@ -136,7 +121,11 @@ package body D_Bus.Connection is
          path     => C_Path,
          iface    => C_Iface,
          method   => C_Method);
-      Free_Strings;
+
+      C.Strings.Free (C_Dest);
+      C.Strings.Free (C_Path);
+      C.Strings.Free (C_Iface);
+      C.Strings.Free (C_Method);
 
       if D_Msg = null then
          raise D_Bus_Error with "Could not allocate message";
@@ -176,6 +165,65 @@ package body D_Bus.Connection is
          end return;
       end;
    end Call_Blocking;
+
+   -------------------------------------------------------------------------
+
+   procedure Call_No_Reply
+     (Connection   : Connection_Type;
+      Destination  : String;
+      Path         : Types.Obj_Path;
+      Iface        : String;
+      Method       : String;
+      Args         : Arguments.Argument_List_Type :=
+        Arguments.Empty_Argument_List)
+   is
+      use type dbus_types_h.dbus_bool_t;
+      D_Msg : access dbus_message_h.DBusMessage := null;
+      D_Res : dbus_types_h.dbus_bool_t;
+
+      C_Dest   : C.Strings.chars_ptr;
+      C_Path   : C.Strings.chars_ptr;
+      C_Iface  : C.Strings.chars_ptr;
+      C_Method : C.Strings.chars_ptr;
+   begin
+      C_Dest   := C.Strings.New_String (Str => Destination);
+      C_Path   := C.Strings.New_String (Str => Types.To_String (Path));
+      C_Iface  := C.Strings.New_String (Str => Iface);
+      C_Method := C.Strings.New_String (Str => Method);
+
+      D_Msg := dbus_message_h.dbus_message_new_method_call
+        (bus_name => C_Dest,
+         path     => C_Path,
+         iface    => C_Iface,
+         method   => C_Method);
+
+      C.Strings.Free (C_Dest);
+      C.Strings.Free (C_Path);
+      C.Strings.Free (C_Iface);
+      C.Strings.Free (C_Method);
+
+      if D_Msg = null then
+         raise D_Bus_Error with "Could not allocate message";
+      end if;
+
+      dbus_message_h.dbus_message_set_no_reply (D_Msg, 1);
+
+      Add_Args (D_Message => D_Msg,
+                Args      => Args);
+
+      D_Res := dbus_connection_h.dbus_connection_send
+        (connection => Connection.Thin_Connection,
+         message => D_Msg,
+         client_serial => null);
+
+      dbus_message_h.dbus_message_unref (D_Msg);
+
+      if D_Res /= 1 then
+         raise D_Bus_Error with "Could not send message";
+      end if;
+
+      dbus_connection_h.dbus_connection_flush (Connection.Thin_Connection);
+   end Call_No_Reply;
 
    -------------------------------------------------------------------------
 
@@ -222,7 +270,11 @@ package body D_Bus.Connection is
                 error   => D_Err'Access))
       do
          C.Strings.Free (Item => C_Addr);
+
          Check (Result => D_Err'Access);
+
+         dbus_connection_h.dbus_connection_set_exit_on_disconnect
+           (Result.Thin_Connection, 0);
       end return;
    end Connect;
 
@@ -264,10 +316,11 @@ package body D_Bus.Connection is
 
    -------------------------------------------------------------------------
 
-   procedure Disconnect (Connection : Connection_Type)
+   procedure Disconnect (Connection : in out Connection_Type)
    is
    begin
       dbus_connection_h.dbus_connection_close (Connection.Thin_Connection);
+      Unref (Connection);
    end Disconnect;
 
    -------------------------------------------------------------------------
@@ -278,14 +331,6 @@ package body D_Bus.Connection is
       dbus_connection_h.dbus_connection_flush
         (connection => Connection.Thin_Connection);
    end Flush;
-
-   -------------------------------------------------------------------------
-
-   procedure Free (Connection : in out Connection_Type) is
-   begin
-      dbus_connection_h.dbus_connection_unref (Connection.Thin_Connection);
-      Connection.Thin_Connection := null;
-   end Free;
 
    -------------------------------------------------------------------------
 
@@ -316,6 +361,17 @@ package body D_Bus.Connection is
 
    -------------------------------------------------------------------------
 
+   function Ref (Connection : Connection_Type) return Connection_Type
+   is
+   begin
+      return
+        (Thin_Connection =>
+            dbus_connection_h.dbus_connection_ref
+              (Connection.Thin_Connection));
+   end Ref;
+
+   -------------------------------------------------------------------------
+
    procedure Release_Name
      (Connection : Connection_Type;
       Name       : String)
@@ -330,8 +386,10 @@ package body D_Bus.Connection is
         (connection => Connection.Thin_Connection,
          name => C_Name,
          error => D_Err'Access);
-
       C.Strings.Free (C_Name);
+
+      --  Check and free error if needed
+      Check (D_Err'Access);
 
       if C_Res /= dbus_shared_h.DBUS_RELEASE_NAME_REPLY_RELEASED then
          raise D_Bus_Error
@@ -476,4 +534,11 @@ package body D_Bus.Connection is
       dbus_message_h.dbus_message_unref (message => D_Msg);
    end Send_Signal;
 
+   -------------------------------------------------------------------------
+
+   procedure Unref (Connection : in out Connection_Type) is
+   begin
+      dbus_connection_h.dbus_connection_unref (Connection.Thin_Connection);
+      Connection := Null_Connection;
+   end Unref;
 end D_Bus.Connection;
